@@ -1,4 +1,27 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:device_preview/device_preview.dart';
+
+void main() => runApp(
+  DevicePreview(
+    enabled: !kReleaseMode,
+    builder: (context) => const GradingApp(),
+  ),
+);
+
+class GradingApp extends StatelessWidget {
+  const GradingApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
+      home: const GradingScreen(),
+    );
+  }
+}
 
 class GradingScreen extends StatefulWidget {
   const GradingScreen({super.key});
@@ -8,128 +31,200 @@ class GradingScreen extends StatefulWidget {
 }
 
 class _GradingScreenState extends State<GradingScreen> {
-  final TextEditingController _scoreController = TextEditingController(text: '8.5');
+  // Controller cho ô nhập điểm (Mặc định là 8.5 theo đề)
+  final TextEditingController _scoreController = TextEditingController(
+    text: '8.5',
+  );
 
-  String getRank(double? score) {
-    if (score == null || score < 0 || score > 10) return 'Không hợp lệ';
-    if (score >= 8.0) return 'Giỏi';
-    if (score >= 6.5) return 'Khá';
-    if (score >= 5.0) return 'Trung bình';
-    return 'Yếu';
-  }
-
-  Color getRankColor(double? score) {
-    if (score == null || score < 0 || score > 10) return Colors.grey;
-    if (score >= 8.0) return Colors.green;
-    if (score >= 6.5) return Colors.blue;
-    if (score >= 5.0) return Colors.amber.shade700;
-    return Colors.red;
-  }
-
-  Widget _buildPresetChip(double score) {
-    return ActionChip(
-      label: Text('$score'),
-      onPressed: () {
-        setState(() {
-          _scoreController.text = score.toString();
-        });
-      },
-    );
+  // Hàm xếp loại học lực theo đúng thang điểm đề bài
+  Map<String, dynamic> evaluateGrade(double score) {
+    if (score < 0 || score > 10) {
+      return {
+        'label': 'Không hợp lệ',
+        'color': Colors.grey.shade600,
+        'bg': Colors.grey.shade200,
+      };
+    } else if (score >= 8.0) {
+      return {
+        'label': 'Giỏi',
+        'color': const Color(0xFF2E7D32),
+        'bg': const Color(0xFFE8F5E9),
+      };
+    } else if (score >= 6.5) {
+      return {
+        'label': 'Khá',
+        'color': const Color(0xFF1565C0),
+        'bg': const Color(0xFFE3F2FD),
+      };
+    } else if (score >= 5.0) {
+      return {
+        'label': 'Trung bình',
+        'color': const Color(0xFFE65100),
+        'bg': const Color(0xFFFFF3E0),
+      };
+    } else {
+      return {
+        'label': 'Yếu',
+        'color': const Color(0xFFC62828),
+        'bg': const Color(0xFFFFEBEE),
+      };
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    double? currentScore = double.tryParse(_scoreController.text);
-    String rank = getRank(currentScore);
-    Color color = getRankColor(currentScore);
+    double currentScore = double.tryParse(_scoreController.text) ?? -1;
+    final mainGrade = evaluateGrade(currentScore);
+    final List<double> testScores = [9.0, 7.0, 5.5, 3.0, 11.0];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        title: const Text('Xếp loại học lực'),
-        backgroundColor: const Color(0xFF1E3A8A),
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1E3A5F),
+        title: const Text(
+          'Xếp loại học lực',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 430),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(10),
-                        blurRadius: 10,
-                      )
-                    ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // KHU VỰC HIỂN THỊ VÀ NHẬP ĐIỂM
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Điểm trung bình',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                   ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'NHẬP ĐIỂM TRUNG BÌNH',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                  const SizedBox(height: 8),
+
+                  // Ô nhập điểm trực tiếp
+                  SizedBox(
+                    width: 120,
+                    child: TextField(
+                      controller: _scoreController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _scoreController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                        decoration: InputDecoration(
-                          hintText: 'Nhập từ 0 đến 10',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 8,
                         ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: color.withAlpha(35),
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Center(
-                          child: Text(
-                            rank,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                      ),
+                      onChanged: (val) {
+                        setState(() {}); // Cập nhật giao diện khi đổi số
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Khung hiển thị kết quả xếp loại
+                  Container(
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: mainGrade['bg'],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      mainGrade['label'],
+                      style: TextStyle(
+                        color: mainGrade['color'],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // PHẦN KIỂM TRA THÊM CỦA ĐỀ BÀI
+            Text(
+              'KIỂM TRA THÊM',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: testScores.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final score = testScores[index];
+                    final grade = evaluateGrade(score);
+                    final String scoreText = score == score.toInt()
+                        ? score.toInt().toString()
+                        : score.toString();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Điểm $scoreText',
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: grade['bg'],
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              grade['label'],
+                              style: TextStyle(
+                                color: grade['color'],
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'THỬ NHANH CÁC MỨC ĐIỂM',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    _buildPresetChip(9.5),
-                    _buildPresetChip(7.5),
-                    _buildPresetChip(6.0),
-                    _buildPresetChip(4.0),
-                    _buildPresetChip(11.0),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
