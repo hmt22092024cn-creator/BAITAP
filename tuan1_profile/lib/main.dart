@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
 
 void main() => runApp(
-  DevicePreview(
-    enabled: !kReleaseMode,
-    builder: (context) => const MyApp(),
-  ),
-);
+      DevicePreview(
+        enabled: !kReleaseMode,
+        builder: (context) => const MyApp(),
+      ),
+    );
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -49,7 +49,8 @@ class ProfileScreen extends StatelessWidget {
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+                    child: const Icon(Icons.arrow_back,
+                        color: Colors.black87, size: 20),
                   ),
                   Container(
                     width: 40,
@@ -58,7 +59,8 @@ class ProfileScreen extends StatelessWidget {
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.edit, color: Color(0xFF10B981), size: 20),
+                    child: const Icon(Icons.edit,
+                        color: Color(0xFF10B981), size: 20),
                   ),
                 ],
               ),
@@ -75,7 +77,8 @@ class ProfileScreen extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: Colors.blue.shade100,
-                      child: const Icon(Icons.person, size: 60, color: Colors.blue),
+                      child: const Icon(Icons.person,
+                          size: 60, color: Colors.blue),
                     ),
                   ),
                 ),
