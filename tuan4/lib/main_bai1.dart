@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
+import 'screens/login_screen.dart';
 
 void main() => runApp(
   DevicePreview(enabled: !kReleaseMode, builder: (context) => const Bai1App()),
@@ -12,12 +13,14 @@ class Bai1App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
       title: 'Bài 1 - UTH Todo V2',
       debugShowCheckedModeBanner: false,
       home: const OnboardingScreen(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+      },
     );
   }
 }
@@ -31,7 +34,13 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
-  int _currentPage = 0;
+
+  void _finishOnboarding() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +48,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       backgroundColor: Colors.white,
       body: PageView(
         controller: _controller,
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-          });
-        },
         children: [
           _buildStartScreen(),
           _buildOnboardingStep1(),
@@ -54,7 +58,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // MÀN HÌNH START (NỀN XANH LỚN)
+  // MÀN HÌNH START
   Widget _buildStartScreen() {
     return Container(
       color: const Color(0xFF3B67E9),
@@ -185,7 +189,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Nhắc đúng lúc',
       subtitle: 'Bật thông báo để UTH Todo nhắc bạn trước hạn chót.',
       buttonText: 'Bắt đầu ngay',
-      onButtonPressed: () {},
+      onButtonPressed: _finishOnboarding,
       illustration: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -274,7 +278,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ],
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: _finishOnboarding,
                   child: const Text(
                     'Bỏ qua',
                     style: TextStyle(color: Colors.grey, fontSize: 14),

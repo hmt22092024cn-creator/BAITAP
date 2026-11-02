@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() => runApp(
   DevicePreview(enabled: !kReleaseMode, builder: (context) => const Bai3App()),
@@ -12,7 +13,6 @@ class Bai3App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
       title: 'Bài 3 - SmartTasks UTH',
@@ -32,22 +32,42 @@ class ForgetPasswordScreen extends StatefulWidget {
 class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   String? _confirmedData;
+  bool _isSending = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               // LOGO UTH CHUẨN ĐƯỜNG DẪN ASSETS/UTH_LOGO.PNG
               Image.asset(
                 'assets/uth_logo.png',
                 width: 70,
                 height: 70,
                 fit: BoxFit.contain,
+                errorBuilder: (c, e, s) => const Icon(
+                  Icons.lock_reset_rounded,
+                  size: 60,
+                  color: Colors.blue,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -72,6 +92,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               const SizedBox(height: 24),
               TextField(
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: 'Your Email',
                   prefixIcon: const Icon(Icons.email_outlined),
@@ -83,29 +104,65 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
+                height: 48,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
+                  onPressed: _isSending ? null : () async {
+                    final email = _emailController.text.trim();
+                    if (email.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Vui lòng nhập email của bạn.')),
+                      );
+                      return;
+                    }
+
+                    final messenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(context);
+
+                    setState(() => _isSending = true);
+                    try {
+                      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('Đã gửi email khôi phục mật khẩu đến $email!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (_) {
+                      // Nếu Firebase Auth chưa cấu hình hoặc lỗi mạng vẫn tiếp tục flow UI
+                    } finally {
+                      if (mounted) setState(() => _isSending = false);
+                    }
+
+                    if (!mounted) return;
+                    final result = await navigator.push(
                       MaterialPageRoute(
                         builder: (context) =>
                             VerifyCodeScreen(email: _emailController.text),
                       ),
                     );
-                    if (result != null) {
+                    if (result != null && mounted) {
                       setState(() {
                         _confirmedData = result.toString();
                       });
                     }
                   },
-                  child: const Text('Next'),
+                  child: _isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Next', style: TextStyle(fontSize: 16)),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(height: 40),
               if (_confirmedData != null)
                 Container(
                   width: double.infinity,
@@ -117,7 +174,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   child: Text(
                     _confirmedData!,
                     style: const TextStyle(
-                      color: Colors.red,
+                      color: Colors.green,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -150,6 +207,11 @@ class VerifyCodeScreen extends StatelessWidget {
                 width: 70,
                 height: 70,
                 fit: BoxFit.contain,
+                errorBuilder: (c, e, s) => const Icon(
+                  Icons.lock_clock_rounded,
+                  size: 60,
+                  color: Colors.blue,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -237,6 +299,11 @@ class ResetPasswordScreen extends StatelessWidget {
                 width: 70,
                 height: 70,
                 fit: BoxFit.contain,
+                errorBuilder: (c, e, s) => const Icon(
+                  Icons.password_rounded,
+                  size: 60,
+                  color: Colors.blue,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -341,6 +408,11 @@ class ConfirmScreen extends StatelessWidget {
                 width: 70,
                 height: 70,
                 fit: BoxFit.contain,
+                errorBuilder: (c, e, s) => const Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 60,
+                  color: Colors.blue,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
