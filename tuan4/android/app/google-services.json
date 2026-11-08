@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "300045445557",
+    "project_id": "uthlorapp",
+    "storage_bucket": "uthlorapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300045445557:android:0bd01883ead45f8ea6d1fc",
+        "android_client_info": {
+          "package_name": "com.example.tuan4"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBl_xXs1EV9AmF8zzCnet_c6-7FRfB0TY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
